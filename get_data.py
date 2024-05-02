@@ -139,7 +139,7 @@ def get_all_lyrics(artist):
     
     df = pd.DataFrame(data)
 
-    print(data)
+    # print(data)
     print(df.head())
 
     file_name = "_".join(artist_name.split(" "))
@@ -151,4 +151,6 @@ def get_all_lyrics(artist):
 # get_songs(46691158)
 # get_lyrics(get_album("Kanye West"))
 
-get_all_lyrics("Kanye West")
+# get_all_lyrics("Kanye West")
+
+get_all_lyrics("HAIM")
