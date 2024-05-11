@@ -21,7 +21,7 @@ def get_artist_lyrics(artist_name,data_path):
         
     api = genius.Genius(GENIUS_ACCESS_TOKEN,timeout=20)
 
-    artist = api.search_artist(artist_name,max_songs=10)
+    artist = api.search_artist(artist_name)
 
     lyrics_df = pd.DataFrame()
 
@@ -34,7 +34,6 @@ def get_artist_lyrics(artist_name,data_path):
             try:
                 value = getattr(song, attr)
                 # print(attr, ":", value)
-
                 song_dict[attr] = value
             except Exception as e:
                 print("An error occurred:", e)
@@ -44,10 +43,14 @@ def get_artist_lyrics(artist_name,data_path):
                 
             
         for key in album_attr:
-            val = song._body['album'][key]
-            # print(key, ":", val)
-
-            album_dict['album_'+key] = val
+            try:
+                val = song._body['album'][key]
+                # print(key, ":", val)
+                album_dict['album_'+key] = val
+            except Exception as e:
+                print("An error occurred:", e)
+                album_dict['album_'+key] = np.nan
+                continue
 
         attr_df = pd.DataFrame(song_dict,index=[0])
         album_df = pd.DataFrame(album_dict,index=[0])
@@ -70,4 +73,4 @@ def get_artist_lyrics(artist_name,data_path):
 
 test_path = './data/'
 
-get_artist_lyrics('Andy Shauf',test_path)
+get_artist_lyrics('HAIM',test_path)
