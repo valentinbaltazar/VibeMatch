@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Gallery</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        img {
+            max-width: 100px;
+            max-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Gallery</h1>
+    <table>
+        <tr>
+            <th>Image 1</th>
+            <th>Image 2</th>
+            <th>Image 3</th>
+            <th>Image 4</th>
+        </tr>
+        <tr>
+            <td>
+                <form action="/search" method="post">
+                    <button type="submit">
+                        <img src="{{ url_for('static', filename='images/cluster_0.png') }}" alt="Image 1">
+                    </button>
+                </form>
+            </td>
+            <td>
+                <form action="/search" method="post">
+                    <button type="submit">
+                        <img src="{{ url_for('static', filename='images/cluster_1.png') }}" alt="Image 2">
+                    </button>
+                </form>
+            </td>
+            <td>
+                <form action="/search" method="post">
+                    <button type="submit">
+                        <img src="{{ url_for('static', filename='images/cluster_2.png') }}" alt="Image 3">
+                    </button>
+                </form>
+            </td>
+            <td>
+                <form action="/search" method="post">
+                    <button type="submit">
+                        <img src="{{ url_for('static', filename='images/cluster_3.png') }}" alt="Image 4">
+                    </button>
+                </form>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -10,10 +10,7 @@ def drop_pattern(df,pattern):
     # Filter rows where the column string matches the pattern
     data = df[~df['song_title'].str.contains(pattern, regex=True)]
 
-    # Drop matches
-    data_filtered = data.drop_duplicates(subset=['lyrics'])
-
-    return data_filtered
+    return data
 
 
 def sub_pattern(pattern,lyrics):
@@ -27,7 +24,6 @@ def clean_lyrics(lyrics):
     #no need for unicode char
     lyrics = lyrics.encode('ascii', 'ignore').decode()
     
-
     # lyrics = re.sub(r'\u2005', ' ', lyrics)
     # lyrics = lyrics.replace('\u2005', ' ')
     # Some have other strange punctuations
@@ -79,15 +75,21 @@ def df_lyrics(data_dir):
 
 def main(directory):
     df = df_lyrics(directory)
-
+    print(df.shape)
+    df = df.dropna(subset=['lyrics'])
+    print(df.shape)
     # First remove duplicates, different title but same lyrics, also (remix), (live)...etc
     df = drop_pattern(df,r"\(.*\)$")
+    df = drop_pattern(df,r"\[Live.*\]$")
 
+    print(df.shape)
     m_out = map(clean_lyrics,df['lyrics'])
     df['corpus'] = list(m_out)
 
-    # clean_df = all_lyrics.dropna(subset=['corpus'])
-    df.to_csv('./data/clean_lyrics.csv')
+    df = df.drop_duplicates(subset=['corpus'])
+    print(df.shape)
+
+    df.to_csv('./temp/clean_lyrics.csv')
 
 
 main('./data/')
