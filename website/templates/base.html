@@ -14,7 +14,29 @@
       href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
       crossorigin="anonymous"
     />
-    <title>{% block title %}Home{% endblock %}</title>
+    <title>{% block title %}Base{% endblock %}</title>
+    <style>
+      table {
+          width: 100%;
+          border-collapse: collapse;
+      }
+      th, td {
+          border: 1px solid #ddd;
+          padding: 8px;
+          text-align: center;
+      }
+      th {
+          background-color: black;
+      }
+      img {
+          max-width: 200px;
+          max-height: 200px;
+      }
+      body {
+          background-color: black;
+          color: white;
+      }
+  </style>
   </head>
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">

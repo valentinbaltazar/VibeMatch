@@ -19,16 +19,20 @@
             text-align: center;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: black;
         }
         img {
             max-width: 200px;
             max-height: 200px;
         }
+        body {
+            background-color: black;
+            color: white;
+        }
     </style>
 </head>
 <body>
-    <h1>Welcome to Vibe Match</h1>
+    <h1>Welcome to VibeMatch</h1>
     <table>
         <tr>
             <th colspan="4">Click on a Vibe</th>
@@ -68,6 +72,22 @@
             </td>
         </tr>
     </table>
+        
+    <h1>Capstone Project</h1>
+    <p>This project is meant to showcase the use of natural language processing (NLP) with song lyrics.
+         Language alone, can not capture the feel of any individual 
+         song but here I group songs based on the similarity 
+         in the lyrics to form the different “vibes”.</p>
+
+    <p>How it works:</p>
+
+    <ol>
+        <li>BERT - A pre trained BERT model encodes the input corpus, which here is a list of song lyrics </li>
+        <li>KMeans - The output vectors from BERT are then grouped into clusters via KMeans </li>
+        <li>Vibes - A WordCloud from the each cluster is created based on the cluster's song lyrics</li>
+        <li>Spotify - The Spotify API is called on a random song when user clicks a vibe</li>
+    </ol>
+
 </body>
 </html>
 

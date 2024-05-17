@@ -2,7 +2,7 @@
 
 ## Setup & Installation
 
-It is good practive to make a new environment and install the required packages (here I call it "vbmatch", you can call it anything):
+It is good practice to make a new environment and install the required packages (here I call it "vbmatch", you can call it anything):
 
 ```
 conda create -n vbmatch python=3.9
@@ -14,14 +14,19 @@ Activate the environment:
 conda activate vbmatch
 ```
 
-Go to any directory and clone the repo (Here I am in the Desktop folder called "apps"):
+Go to any directory of your choice and clone the repo:
 
 ```
-cd /Desktop/apps/
+cd /<Your Directory>
 ```
 
 ```bash
 git clone https://github.com/valentinbaltazar/VibeMatch.git
+```
+
+Move into the VibeMatch directory:
+```
+cd VibeMatch
 ```
 
 Install the packages needed (may take a while):
