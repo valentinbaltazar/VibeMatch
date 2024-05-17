@@ -2,6 +2,73 @@
 {% block title %}test1{% endblock %}
 
 {% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        img {
+            max-width: 200px;
+            max-height: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Vibe Match</h1>
+    <table>
+        <tr>
+            <th colspan="4">Click on a Vibe</th>
+        </tr>
+        <tr>
+            <td>
+                <form action="/vibe" method="post">
+                    <input type="hidden" name="file_name" value="cluster_0.png">
+                    <button type="submit">
+                        <img src="{{ url_for('static', filename='images/cluster_0.png') }}" alt="Image 1">
+                    </button>
+                </form>
+            </td>
+            <td>
+                <form action="/vibe" method="post">
+                    <input type="hidden" name="file_name" value="cluster_1.png">
+                    <button type="submit">
+                        <img src="{{ url_for('static', filename='images/cluster_1.png') }}" alt="Image 2">
+                    </button>
+                </form>
+            </td>
+            <td>
+                <form action="/vibe" method="post">
+                    <input type="hidden" name="file_name" value="cluster_2.png">
+                    <button type="submit">
+                        <img src="{{ url_for('static', filename='images/cluster_2.png') }}" alt="Image 3">
+                    </button>
+                </form>
+            </td>
+            <td>
+                <form action="/vibe" method="post">
+                    <input type="hidden" name="file_name" value="cluster_3.png">
+                    <button type="submit">
+                        <img src="{{ url_for('static', filename='images/cluster_3.png') }}" alt="Image 4">
+                    </button>
+                </form>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
 
-HOME test
 {% endblock %}
