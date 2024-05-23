@@ -3,6 +3,11 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import pandas as pd
 import os
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
+from sentence_transformers import SentenceTransformer
+import lyricsgenius as genius
+
 
 routes = Blueprint('routes', __name__)
 
@@ -28,6 +33,11 @@ def test():
 @routes.route('/demo')
 def demo():
     return render_template('demo.html')
+
+
+@routes.route('/playlist')
+def playlist():
+    return render_template('playlist.html')
 
 
 @routes.route('/vibe', methods=['POST'])
@@ -101,6 +111,62 @@ def search_song():
         return redirect(url_for('routes.play_song', track_id=track_id))
     else:
         return "Song not found."
+
+
+def generate_playlist(input_text, df, corpus_embeddings, model):
+    print("this is make playlist def")
+    # Encode the input text
+    input_embedding = model.encode([input_text])
+    
+    # Compute cosine similarity between input text and corpus
+    similarities = cosine_similarity(input_embedding, corpus_embeddings)
+    
+    # Find the index of the most similar text
+    n = 5
+    most_similar_idx = np.argsort(similarities)[0][::-1]
+   
+    playlist_songs = []
+    
+    for i in most_similar_idx[:20]:
+        name  = df.iloc[i]['artist_name']
+        song  = df.iloc[i]['song_title']
+        lyrics = df.iloc[i]['lyrics']
+
+        playlist_songs.append({'song_name': song, 'artist_name': name})
+        
+    return playlist_songs
+
+@routes.route('/playlist', methods=['POST'])
+def make_playlist():
+    user_input = request.form['user_input']
+
+    df = pd.read_csv('./website/static/data/rec_data.csv')
+    model = SentenceTransformer('bert-base-nli-mean-tokens',device='cuda')
+    corpus_embeddings = np.load('./website/static/data/corpus_embeddings.npy')
+    
+    if user_input != "None":
+
+        print(user_input)
+
+        songs = generate_playlist(user_input,df, corpus_embeddings, model)
+
+        return render_template('rec_songs.html', songs=songs)
+    else:
+        song_name = request.form['song_name']
+        artist_name = request.form['artist_name']
+
+        GENIUS_ACCESS_TOKEN = "3TVMsMFnRiJGJnZ7r4Wl2pgmy2_hPdMiAoXED6Jofnp2AnAHKgY97q1J9b6RMBkz"
+
+        api = genius.Genius(GENIUS_ACCESS_TOKEN,timeout=60,retries=2)
+
+        song = api.search_song(title=song_name, artist=artist_name)
+
+        songs = generate_playlist(song.lyrics,df, corpus_embeddings, model)
+
+        return render_template('rec_songs.html', songs=songs)
+
+
+
 
 
 @routes.route('/play/<track_id>')

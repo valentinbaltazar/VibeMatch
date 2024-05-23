@@ -1,0 +1,32 @@
+<!-- templates/form.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Playlist Form</title>
+</head>
+<body>
+  
+    <h1>Your Playlist</h1>
+    <table border="1">
+        <tr>
+            <th>Song Name</th>
+            <th>Artist Name</th>
+            <th>Action</th>
+        </tr>
+        {% for song in songs %}
+        <tr>
+            <td>{{ song.song_name }}</td>
+            <td>{{ song.artist_name }}</td>
+            <td>
+                <form action="/search" method="POST">
+                    <input type="hidden" name="song_name" value="{{ song.song_name }}">
+                    <input type="hidden" name="artist_name" value="{{ song.artist_name }}">
+                    <input type="submit" value="Search">
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
