@@ -1,0 +1,86 @@
+{% extends "base.html" %} 
+{% block title %}test1{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: center;
+        }
+        th {
+            background-color: black;
+        }
+        img {
+            max-width: 300px;
+            max-height: 300px;
+        }
+        body {
+            background-color: black;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to VibeMatch</h1>
+    <table>
+        <tr>
+            <th colspan="4">Click on a Vibe</th>
+        </tr>
+        <tr>
+            <td>
+                <form action="/vibe_demo" method="post">
+                    <input type="hidden" name="file_name" value="demo_cluster_5.png">
+                    <button type="submit">
+                        <img src="{{ url_for('static', filename='images/demo_cluster_5.png') }}" alt="Image 1">
+                    </button>
+                </form>
+            </td>
+            <td>
+                <form action="/vibe_demo" method="post">
+                    <input type="hidden" name="file_name" value="demo_cluster_10.png">
+                    <button type="submit">
+                        <img src="{{ url_for('static', filename='images/demo_cluster_10.png') }}" alt="Image 2">
+                    </button>
+                </form>
+            </td>
+            <td>
+                <form action="/vibe_demo" method="post">
+                    <input type="hidden" name="file_name" value="demo_cluster_8.png">
+                    <button type="submit">
+                        <img src="{{ url_for('static', filename='images/demo_cluster_8.png') }}" alt="Image 3">
+                    </button>
+                </form>
+            </td>
+        </tr>
+    </table>
+        
+    <h1>Capstone Project</h1>
+    <p>This project is meant to showcase the use of natural language processing (NLP) with song lyrics.
+         Language alone, can not capture the feel of any individual 
+         song but here I group songs based on the similarity 
+         in the lyrics to form the different “vibes”.</p>
+
+    <p>How it works:</p>
+
+    <ol>
+        <li>BERT - A pre trained BERT model encodes the input corpus, which here is a list of song lyrics </li>
+        <li>KMeans - The output vectors from BERT are then grouped into clusters via KMeans </li>
+        <li>Vibes - A WordCloud from the each cluster is created based on the cluster's song lyrics</li>
+        <li>Spotify - The Spotify API is called on a random song when user clicks a vibe</li>
+    </ol>
+
+</body>
+</html>
+
+{% endblock %}
