@@ -1,3 +1,6 @@
 Flask
 spotipy
 pandas
+scikit-learn
+sentence-transformers
+lyricsgenius

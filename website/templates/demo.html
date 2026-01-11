@@ -2,40 +2,32 @@
 {% block title %}test1{% endblock %}
 
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demo</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 5px;
-            text-align: center;
-        }
-        th {
-            background-color: black;
-        }
-        img {
-            max-width: 300px;
-            max-height: 300px;
-        }
-        body {
-            background-color: black;
-            color: white;
-        }
-    </style>
-</head>
-<body>
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 0px solid #ddd;
+        padding: 8px;
+        text-align: center;
+    }
+    th {
+        background-color: black;
+    }
+    img {
+        max-width: 300px;
+        max-height: 300px;
+    }
+    body {
+        background-color: black;
+        color: white;
+    }
+</style>
     <h1>Welcome to VibeMatch</h1>
     <table>
         <tr>
-            <th colspan="4">Click on a Vibe</th>
+            <th colspan="4">Click on a Vibe to explore songs</th>
         </tr>
         <tr>
             <td>
@@ -79,8 +71,5 @@
         <li>Vibes - A WordCloud from the each cluster is created based on the cluster's song lyrics</li>
         <li>Spotify - The Spotify API is called on a random song when user clicks a vibe</li>
     </ol>
-
-</body>
-</html>
 
 {% endblock %}

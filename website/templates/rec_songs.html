@@ -1,12 +1,7 @@
-<!-- templates/form.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Playlist Form</title>
-</head>
-<body>
-  
+{% extends "base.html" %} 
+{% block title %}Search{% endblock %}
+
+{% block content %}
     <h1>Your Playlist</h1>
     <table border="1">
         <tr>
@@ -28,5 +23,4 @@
         </tr>
         {% endfor %}
     </table>
-</body>
-</html>
+{% endblock %}

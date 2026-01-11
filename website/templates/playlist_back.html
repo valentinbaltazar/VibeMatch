@@ -1,0 +1,28 @@
+{% extends "base.html" %} 
+{% block title %}Search{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist</title>
+</head>
+<body>
+    <h1>Make a Playlist</h1>
+    <form action="/playlist" method="post">
+        <label for="song_name">Song Name:</label>
+        <input type="text" id="song_name" name="song_name" value="None"><br>
+        <label for="artist_name">Artist Name:</label>
+        <input type="text" id="artist_name" name="artist_name" value="None"><br>
+        <label for="user_input">Your Lyrics Here:</label>
+        <input type="text" id="user_input" name="user_input" value="None"><br>
+        <button type="submit">Search</button>
+    </form>
+    <p>Generate a playlist based on a song you like, or make up some lyrics.</p>
+</body>
+</html>
+
+
+{% endblock %}
