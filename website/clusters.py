@@ -10,7 +10,7 @@ import os
 
 def make_clusters(corpus):
 
-    embed = EmbeddingModel(device='cuda')
+    embed = EmbeddingModel(device='cpu')
     corpus_embeddings = embed.encode(corpus)
 
 

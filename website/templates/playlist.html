@@ -1,18 +1,1268 @@
-{% extends "base.html" %} 
-{% block title %}Search{% endblock %}
+{% extends "base.html" %}
+{% block title %}Semantic Playlist Generator - VibeMatch{% endblock %}
 
 {% block content %}
-<h1>Make a Playlist</h1>
-<form action="/playlist" method="post">
-    <label for="song_name">Song Name:</label>
-    <input type="text" id="song_name" name="song_name" value="None"><br>
-    <label for="artist_name">Artist Name:</label>
-    <input type="text" id="artist_name" name="artist_name" value="None"><br>
-    <label for="user_input">Your Lyrics Here:</label>
-    <textarea id="user_input" name="user_input" rows="4" cols="20">None</textarea><br>
-    <button type="submit">Submit</button>
-</form>
-<p>Generate a playlist based on a song you like, or make up some lyrics.</p>
+<style>
+    :root {
+        --primary: #1DB954;
+        --primary-dark: #1aa34a;
+        --primary-glow: rgba(29, 185, 84, 0.3);
+        --bg-dark: #121212;
+        --bg-card: #181818;
+        --bg-hover: #282828;
+        --bg-input: #2a2a2a;
+        --text-primary: #ffffff;
+        --text-secondary: #b3b3b3;
+        --text-muted: #727272;
+        --border-color: #333;
+        --error: #ff4757;
+        --warning: #ffa502;
+    }
 
+    body {
+        background-color: var(--bg-dark);
+        color: var(--text-primary);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        text-align: center;
+        padding: 50px 20px;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        border-radius: 16px;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, var(--primary-glow) 0%, transparent 50%);
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 0.3; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.1); }
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .hero-section h1 {
+        font-size: 2.8rem;
+        margin-bottom: 15px;
+        background: linear-gradient(90deg, #1DB954, #1ed760, #69f0ae);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-section .subtitle {
+        color: var(--text-secondary);
+        font-size: 1.2rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .ml-badges {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .ml-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(29, 185, 84, 0.2);
+        border: 1px solid var(--primary);
+        color: var(--primary);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    /* Main Container */
+    .main-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    @media (max-width: 900px) {
+        .main-container {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Input Panel */
+    .input-panel {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 30px;
+        border: 1px solid var(--border-color);
+    }
+
+    .panel-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 25px;
+    }
+
+    .panel-header h2 {
+        margin: 0;
+        font-size: 1.4rem;
+    }
+
+    .panel-header svg {
+        color: var(--primary);
+    }
+
+    /* Mode Toggle */
+    .mode-toggle {
+        display: flex;
+        background: var(--bg-hover);
+        border-radius: 12px;
+        padding: 5px;
+        margin-bottom: 25px;
+    }
+
+    .mode-btn {
+        flex: 1;
+        padding: 14px 20px;
+        border: none;
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .mode-btn.active {
+        background: var(--primary);
+        color: white;
+    }
+
+    .mode-btn:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text-primary);
+    }
+
+    /* Input Sections */
+    .input-section {
+        display: none;
+    }
+
+    .input-section.active {
+        display: block;
+    }
+
+    /* Form Styling */
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .form-group .hint {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 6px;
+    }
+
+    .text-input {
+        width: 100%;
+        padding: 14px 16px;
+        background: var(--bg-input);
+        border: 2px solid var(--border-color);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-size: 1rem;
+        transition: all 0.3s;
+        box-sizing: border-box;
+    }
+
+    .text-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .text-input::placeholder {
+        color: var(--text-muted);
+    }
+
+    textarea.text-input {
+        min-height: 180px;
+        resize: vertical;
+        font-family: inherit;
+        line-height: 1.6;
+    }
+
+    /* Character Counter */
+    .char-counter {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 8px;
+        font-size: 0.85rem;
+    }
+
+    .char-count {
+        color: var(--text-muted);
+    }
+
+    .char-count.warning {
+        color: var(--warning);
+    }
+
+    .char-count.good {
+        color: var(--primary);
+    }
+
+    /* Example Prompts */
+    .example-prompts {
+        margin-top: 15px;
+    }
+
+    .example-prompts h4 {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+
+    .example-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .example-chip {
+        background: var(--bg-hover);
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .example-chip:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: rgba(29, 185, 84, 0.1);
+    }
+
+    /* Submit Button */
+    .submit-btn {
+        width: 100%;
+        padding: 18px 32px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, var(--primary), #1ed760);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px var(--primary-glow);
+    }
+
+    .submit-btn:disabled {
+        background: #404040;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .submit-btn .spinner {
+        display: none;
+        width: 22px;
+        height: 22px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    .submit-btn.loading .spinner {
+        display: block;
+    }
+
+    .submit-btn.loading .btn-text {
+        display: none;
+    }
+
+    .submit-btn.loading .loading-text {
+        display: inline;
+    }
+
+    .submit-btn .loading-text {
+        display: none;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* ML Explainer Panel */
+    .explainer-panel {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 30px;
+        border: 1px solid var(--border-color);
+    }
+
+    .pipeline-visual {
+        margin-top: 20px;
+    }
+
+    .pipeline-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 18px;
+        background: var(--bg-hover);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        position: relative;
+        border-left: 3px solid var(--border-color);
+        transition: all 0.3s;
+    }
+
+    .pipeline-step.active {
+        border-left-color: var(--primary);
+        background: rgba(29, 185, 84, 0.1);
+    }
+
+    .pipeline-step.completed {
+        border-left-color: var(--primary);
+    }
+
+    .step-icon {
+        width: 44px;
+        height: 44px;
+        background: var(--bg-dark);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .pipeline-step.active .step-icon,
+    .pipeline-step.completed .step-icon {
+        background: var(--primary);
+    }
+
+    .step-content h4 {
+        margin: 0 0 5px 0;
+        font-size: 1rem;
+        color: var(--text-primary);
+    }
+
+    .step-content p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    .step-stats {
+        font-size: 0.8rem;
+        color: var(--primary);
+        margin-top: 5px;
+        font-weight: 500;
+    }
+
+    /* Embedding Visualization */
+    .embedding-viz {
+        margin-top: 25px;
+        background: var(--bg-hover);
+        border-radius: 12px;
+        padding: 20px;
+    }
+
+    .embedding-viz h4 {
+        margin: 0 0 15px 0;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .vector-display {
+        display: flex;
+        gap: 3px;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 15px;
+        background: var(--bg-dark);
+        border-radius: 8px;
+        min-height: 60px;
+    }
+
+    .vector-bar {
+        width: 4px;
+        background: var(--primary);
+        border-radius: 2px;
+        transition: height 0.3s;
+    }
+
+    .vector-placeholder {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .embedding-info {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .embedding-stat {
+        background: var(--bg-dark);
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+    }
+
+    .embedding-stat .value {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--primary);
+    }
+
+    .embedding-stat .label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 3px;
+    }
+
+    /* Results Section */
+    .results-section {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 30px;
+        border: 1px solid var(--border-color);
+        margin-top: 30px;
+        display: none;
+    }
+
+    .results-section.visible {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .results-header h2 {
+        margin: 0;
+        font-size: 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .results-meta {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .meta-badge {
+        background: var(--bg-hover);
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+    }
+
+    .meta-badge .value {
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    /* Song Cards */
+    .song-grid {
+        display: grid;
+        gap: 15px;
+    }
+
+    .song-card {
+        display: grid;
+        grid-template-columns: 60px 1fr auto auto;
+        gap: 15px;
+        align-items: center;
+        padding: 15px;
+        background: var(--bg-hover);
+        border-radius: 12px;
+        transition: all 0.3s;
+        border: 1px solid transparent;
+    }
+
+    .song-card:hover {
+        border-color: var(--primary);
+        transform: translateX(5px);
+    }
+
+    .song-rank {
+        width: 40px;
+        height: 40px;
+        background: var(--bg-dark);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+    }
+
+    .song-card:nth-child(-n+3) .song-rank {
+        background: linear-gradient(135deg, var(--primary), #1ed760);
+        color: white;
+    }
+
+    .song-album-art {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        object-fit: cover;
+        background: var(--bg-dark);
+    }
+
+    .song-info {
+        min-width: 0;
+    }
+
+    .song-info h4 {
+        margin: 0 0 4px 0;
+        font-size: 1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .song-info p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .similarity-score {
+        text-align: center;
+        padding: 0 15px;
+    }
+
+    .similarity-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .similarity-label {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .similarity-bar {
+        width: 80px;
+        height: 4px;
+        background: var(--bg-dark);
+        border-radius: 2px;
+        margin-top: 5px;
+        overflow: hidden;
+    }
+
+    .similarity-fill {
+        height: 100%;
+        background: var(--primary);
+        border-radius: 2px;
+        transition: width 0.5s ease;
+    }
+
+    .song-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .spotify-btn-small {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        background: var(--primary);
+        border-radius: 50%;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+
+    .spotify-btn-small:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 15px var(--primary-glow);
+    }
+
+    .spotify-btn-small.disabled {
+        background: var(--bg-dark);
+        color: var(--text-muted);
+        pointer-events: none;
+    }
+
+    /* Error State */
+    .error-message {
+        background: rgba(255, 71, 87, 0.1);
+        border: 1px solid var(--error);
+        color: var(--error);
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-top: 15px;
+        display: none;
+    }
+
+    .error-message.visible {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* How It Works Footer */
+    .how-it-works {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border-radius: 16px;
+        padding: 35px;
+        margin-top: 30px;
+    }
+
+    .how-it-works h2 {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 1.5rem;
+    }
+
+    .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .tech-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 25px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tech-card-icon {
+        width: 60px;
+        height: 60px;
+        background: var(--primary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 1.5rem;
+    }
+
+    .tech-card h4 {
+        margin: 0 0 10px 0;
+        font-size: 1.1rem;
+    }
+
+    .tech-card p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    .tech-card .tech-detail {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 0.8rem;
+        color: var(--primary);
+        font-family: monospace;
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="hero-content">
+        <h1>Semantic Playlist Generator</h1>
+        <p class="subtitle">
+            Enter lyrics or describe a mood, and our BERT model will find songs with similar semantic meaning in a 768-dimensional embedding space.
+        </p>
+        <div class="ml-badges">
+            <span class="ml-badge">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                BERT NLI Embeddings
+            </span>
+            <span class="ml-badge">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                Cosine Similarity Search
+            </span>
+            <span class="ml-badge">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                16,000+ Song Corpus
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Main Container -->
+<div class="main-container">
+    <!-- Input Panel -->
+    <div class="input-panel">
+        <div class="panel-header">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9 18V5l12-2v13"></path>
+                <circle cx="6" cy="18" r="3"></circle>
+                <circle cx="18" cy="16" r="3"></circle>
+            </svg>
+            <h2>Find Your Vibe</h2>
+        </div>
+
+        <!-- Mode Toggle -->
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="lyricsMode" onclick="setMode('lyrics')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+                Enter Lyrics
+            </button>
+            <button class="mode-btn" id="songMode" onclick="setMode('song')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="M21 21l-4.35-4.35"></path>
+                </svg>
+                Search by Song
+            </button>
+        </div>
+
+        <!-- Lyrics Input Section -->
+        <div class="input-section active" id="lyricsSection">
+            <div class="form-group">
+                <label for="lyricsInput">Your Lyrics or Mood Description</label>
+                <textarea
+                    class="text-input"
+                    id="lyricsInput"
+                    placeholder="Enter some lyrics, a poem, or describe a mood...&#10;&#10;Example: 'Lost in the city lights, searching for meaning in the night, feeling like I'm running out of time...'"
+                ></textarea>
+                <div class="char-counter">
+                    <span class="char-count" id="charCount">0 characters</span>
+                    <span class="hint">Minimum 10 characters recommended</span>
+                </div>
+            </div>
+
+            <div class="example-prompts">
+                <h4>Try an example:</h4>
+                <div class="example-chips">
+                    <span class="example-chip" onclick="setExample('heartbreak')">Heartbreak & Loss</span>
+                    <span class="example-chip" onclick="setExample('party')">Party & Fun</span>
+                    <span class="example-chip" onclick="setExample('motivation')">Motivation</span>
+                    <span class="example-chip" onclick="setExample('nostalgia')">Nostalgia</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Song Input Section -->
+        <div class="input-section" id="songSection">
+            <div class="form-group">
+                <label for="songInput">Song Name</label>
+                <input
+                    type="text"
+                    class="text-input"
+                    id="songInput"
+                    placeholder="e.g., Bohemian Rhapsody"
+                >
+            </div>
+            <div class="form-group">
+                <label for="artistInput">Artist Name</label>
+                <input
+                    type="text"
+                    class="text-input"
+                    id="artistInput"
+                    placeholder="e.g., Queen"
+                >
+                <p class="hint">We'll fetch the lyrics from Genius and find similar songs</p>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message" id="errorMessage">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <span id="errorText"></span>
+        </div>
+
+        <!-- Submit Button -->
+        <button class="submit-btn" id="submitBtn" onclick="generatePlaylist()">
+            <span class="btn-text">Generate Playlist</span>
+            <span class="loading-text">Searching Embedding Space...</span>
+            <div class="spinner"></div>
+        </button>
+    </div>
+
+    <!-- ML Explainer Panel -->
+    <div class="explainer-panel">
+        <div class="panel-header">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+                <path d="M12 6v6l4 2"/>
+            </svg>
+            <h2>ML Pipeline</h2>
+        </div>
+
+        <div class="pipeline-visual">
+            <div class="pipeline-step" id="pipelineStep1">
+                <div class="step-icon">1</div>
+                <div class="step-content">
+                    <h4>Text Input</h4>
+                    <p>Your lyrics are preprocessed and tokenized</p>
+                    <div class="step-stats" id="step1Stats"></div>
+                </div>
+            </div>
+
+            <div class="pipeline-step" id="pipelineStep2">
+                <div class="step-icon">2</div>
+                <div class="step-content">
+                    <h4>BERT Encoding</h4>
+                    <p>Transformer model converts text to semantic vector</p>
+                    <div class="step-stats">768-dimensional dense vector</div>
+                </div>
+            </div>
+
+            <div class="pipeline-step" id="pipelineStep3">
+                <div class="step-icon">3</div>
+                <div class="step-content">
+                    <h4>Similarity Search</h4>
+                    <p>Cosine similarity against pre-computed corpus</p>
+                    <div class="step-stats" id="step3Stats">16,000+ song embeddings</div>
+                </div>
+            </div>
+
+            <div class="pipeline-step" id="pipelineStep4">
+                <div class="step-icon">4</div>
+                <div class="step-content">
+                    <h4>Top-K Results</h4>
+                    <p>Return 20 most similar songs ranked by score</p>
+                    <div class="step-stats" id="step4Stats"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Embedding Visualization -->
+        <div class="embedding-viz">
+            <h4>
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+                </svg>
+                Your Embedding Vector
+            </h4>
+            <div class="vector-display" id="vectorDisplay">
+                <div class="vector-placeholder">Enter text to visualize embedding</div>
+            </div>
+            <div class="embedding-info">
+                <div class="embedding-stat">
+                    <div class="value" id="embeddingDims">768</div>
+                    <div class="label">Dimensions</div>
+                </div>
+                <div class="embedding-stat">
+                    <div class="value" id="corpusSize">-</div>
+                    <div class="label">Corpus Size</div>
+                </div>
+                <div class="embedding-stat">
+                    <div class="value" id="topSimilarity">-</div>
+                    <div class="label">Top Match</div>
+                </div>
+                <div class="embedding-stat">
+                    <div class="value" id="avgSimilarity">-</div>
+                    <div class="label">Avg Similarity</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results Section -->
+<div class="results-section" id="resultsSection">
+    <div class="results-header">
+        <h2>
+            <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+            </svg>
+            Your Semantic Playlist
+        </h2>
+        <div class="results-meta">
+            <span class="meta-badge">Model: <span class="value">BERT-NLI</span></span>
+            <span class="meta-badge">Matches: <span class="value" id="matchCount">20</span></span>
+        </div>
+    </div>
+
+    <div class="song-grid" id="songGrid">
+        <!-- Songs will be inserted here -->
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="how-it-works">
+    <h2>The Technology Behind VibeMatch</h2>
+    <div class="tech-grid">
+        <div class="tech-card">
+            <div class="tech-card-icon">
+                <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+            </div>
+            <h4>BERT Embeddings</h4>
+            <p>Pre-trained transformer model that understands semantic meaning of text, not just keywords.</p>
+            <div class="tech-detail">bert-base-nli-mean-tokens</div>
+        </div>
+
+        <div class="tech-card">
+            <div class="tech-card-icon">
+                <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+            </div>
+            <h4>Vector Space</h4>
+            <p>768-dimensional embedding space where similar meanings cluster together geometrically.</p>
+            <div class="tech-detail">dim(v) = 768</div>
+        </div>
+
+        <div class="tech-card">
+            <div class="tech-card-icon">
+                <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>
+                </svg>
+            </div>
+            <h4>Cosine Similarity</h4>
+            <p>Measures angle between vectors to find semantically similar content regardless of magnitude.</p>
+            <div class="tech-detail">sim(a,b) = a·b / (|a||b|)</div>
+        </div>
+
+        <div class="tech-card">
+            <div class="tech-card-icon">
+                <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                </svg>
+            </div>
+            <h4>Pre-computed Corpus</h4>
+            <p>16,000+ songs with pre-computed embeddings for instant similarity search.</p>
+            <div class="tech-detail">O(n) search complexity</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // State
+    let currentMode = 'lyrics';
+
+    // Example prompts
+    const examples = {
+        heartbreak: "My heart is shattered into a million pieces, crying alone in the dark, wondering where we went wrong. The memories haunt me every night, I can't escape the pain of losing you.",
+        party: "Let's dance all night long, feeling the beat drop, hands up in the air, living for the moment. The music takes control, we're young and free tonight!",
+        motivation: "Rise up and chase your dreams, never give up on what you believe. Through the struggle comes strength, keep pushing forward, your time will come.",
+        nostalgia: "Remember when we were young, summer days that never ended, laughing without a care in the world. Those golden memories still shine bright in my mind."
+    };
+
+    // Mode toggle
+    function setMode(mode) {
+        currentMode = mode;
+        document.getElementById('lyricsMode').classList.toggle('active', mode === 'lyrics');
+        document.getElementById('songMode').classList.toggle('active', mode === 'song');
+        document.getElementById('lyricsSection').classList.toggle('active', mode === 'lyrics');
+        document.getElementById('songSection').classList.toggle('active', mode === 'song');
+        hideError();
+    }
+
+    // Set example text
+    function setExample(key) {
+        document.getElementById('lyricsInput').value = examples[key];
+        updateCharCount();
+    }
+
+    // Character counter
+    function updateCharCount() {
+        const input = document.getElementById('lyricsInput');
+        const count = input.value.length;
+        const counter = document.getElementById('charCount');
+        counter.textContent = `${count} characters`;
+        counter.classList.remove('warning', 'good');
+        if (count > 0 && count < 10) {
+            counter.classList.add('warning');
+        } else if (count >= 50) {
+            counter.classList.add('good');
+        }
+    }
+
+    document.getElementById('lyricsInput').addEventListener('input', updateCharCount);
+
+    // Error handling
+    function showError(message) {
+        const errorDiv = document.getElementById('errorMessage');
+        document.getElementById('errorText').textContent = message;
+        errorDiv.classList.add('visible');
+    }
+
+    function hideError() {
+        document.getElementById('errorMessage').classList.remove('visible');
+    }
+
+    // Update pipeline visualization
+    function updatePipeline(step, data = {}) {
+        for (let i = 1; i <= 4; i++) {
+            const stepEl = document.getElementById(`pipelineStep${i}`);
+            stepEl.classList.remove('active', 'completed');
+            if (i < step) {
+                stepEl.classList.add('completed');
+            } else if (i === step) {
+                stepEl.classList.add('active');
+            }
+        }
+
+        if (data.inputLength) {
+            document.getElementById('step1Stats').textContent = `${data.inputLength} characters processed`;
+        }
+        if (data.corpusSize) {
+            document.getElementById('step3Stats').textContent = `${data.corpusSize.toLocaleString()} song embeddings`;
+            document.getElementById('corpusSize').textContent = data.corpusSize.toLocaleString();
+        }
+        if (data.matchCount) {
+            document.getElementById('step4Stats').textContent = `${data.matchCount} matches found`;
+        }
+    }
+
+    // Visualize embedding (simulated)
+    function visualizeEmbedding(active = false) {
+        const container = document.getElementById('vectorDisplay');
+        if (!active) {
+            container.innerHTML = '<div class="vector-placeholder">Enter text to visualize embedding</div>';
+            return;
+        }
+
+        // Generate random bars to simulate 768 dimensions (showing 100 bars)
+        let html = '';
+        for (let i = 0; i < 100; i++) {
+            const height = 10 + Math.random() * 40;
+            const delay = i * 10;
+            html += `<div class="vector-bar" style="height: ${height}px; animation-delay: ${delay}ms;"></div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    // Update similarity stats
+    function updateSimilarityStats(metadata) {
+        document.getElementById('topSimilarity').textContent =
+            (metadata.top_similarity * 100).toFixed(1) + '%';
+        document.getElementById('avgSimilarity').textContent =
+            (metadata.avg_similarity * 100).toFixed(1) + '%';
+    }
+
+    // Generate playlist
+    async function generatePlaylist() {
+        const btn = document.getElementById('submitBtn');
+        btn.classList.add('loading');
+        btn.disabled = true;
+        hideError();
+
+        // Reset UI
+        document.getElementById('resultsSection').classList.remove('visible');
+        updatePipeline(1);
+        visualizeEmbedding(true);
+
+        // Build request body
+        let body = { mode: currentMode };
+
+        if (currentMode === 'lyrics') {
+            const lyrics = document.getElementById('lyricsInput').value.trim();
+            if (lyrics.length < 10) {
+                showError('Please enter at least 10 characters');
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                return;
+            }
+            body.lyrics = lyrics;
+            updatePipeline(1, { inputLength: lyrics.length });
+        } else {
+            const songName = document.getElementById('songInput').value.trim();
+            const artistName = document.getElementById('artistInput').value.trim();
+            if (!songName || !artistName) {
+                showError('Please enter both song name and artist');
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                return;
+            }
+            body.song_name = songName;
+            body.artist_name = artistName;
+        }
+
+        try {
+            // Simulate pipeline steps
+            await sleep(300);
+            updatePipeline(2);
+            await sleep(500);
+            updatePipeline(3);
+
+            const response = await fetch('/api/playlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to generate playlist');
+            }
+
+            updatePipeline(4, {
+                corpusSize: data.metadata.corpus_size,
+                matchCount: data.songs.length
+            });
+
+            updateSimilarityStats(data.metadata);
+            displayResults(data.songs);
+
+        } catch (error) {
+            showError(error.message);
+            visualizeEmbedding(false);
+        } finally {
+            btn.classList.remove('loading');
+            btn.disabled = false;
+        }
+    }
+
+    // Display results
+    function displayResults(songs) {
+        const grid = document.getElementById('songGrid');
+        grid.innerHTML = '';
+
+        document.getElementById('matchCount').textContent = songs.length;
+
+        songs.forEach((song, index) => {
+            const similarity = song.similarity || 0;
+            const similarityPercent = (similarity * 100).toFixed(1);
+            const hasSpotify = song.spotify_url;
+            const albumArt = song.album_art || 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23404040"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>';
+
+            const card = document.createElement('div');
+            card.className = 'song-card';
+            card.style.animationDelay = `${index * 50}ms`;
+
+            card.innerHTML = `
+                <div class="song-rank">${index + 1}</div>
+                <img class="song-album-art" src="${albumArt}" alt="Album art" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23404040%22><path d=%22M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z%22/></svg>'">
+                <div class="song-info">
+                    <h4>${escapeHtml(song.song_name)}</h4>
+                    <p>${escapeHtml(song.artist_name)}</p>
+                </div>
+                <div class="similarity-score">
+                    <div class="similarity-value">${similarityPercent}%</div>
+                    <div class="similarity-label">Match</div>
+                    <div class="similarity-bar">
+                        <div class="similarity-fill" style="width: ${similarityPercent}%"></div>
+                    </div>
+                </div>
+                <div class="song-actions">
+                    <a href="${hasSpotify ? song.spotify_url : '#'}"
+                       target="_blank"
+                       class="spotify-btn-small ${hasSpotify ? '' : 'disabled'}"
+                       title="${hasSpotify ? 'Play on Spotify' : 'Not available on Spotify'}">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                        </svg>
+                    </a>
+                </div>
+            `;
+
+            grid.appendChild(card);
+        });
+
+        document.getElementById('resultsSection').classList.add('visible');
+
+        // Scroll to results
+        setTimeout(() => {
+            document.getElementById('resultsSection').scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    }
+
+    // Utilities
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
 
 {% endblock %}
